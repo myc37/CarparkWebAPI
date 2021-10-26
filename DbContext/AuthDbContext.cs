@@ -8,13 +8,10 @@ using System.Threading.Tasks;
 
 namespace CarparkWebAPI.DbContext
 {
-    public class AuthDbContext : IdentityDbContext
+    public class AuthDbContext : IdentityDbContext<User>
     {
-        private readonly DbContextOptions _options;
-
         public AuthDbContext(DbContextOptions options) : base(options)
         {
-            _options = options;
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
