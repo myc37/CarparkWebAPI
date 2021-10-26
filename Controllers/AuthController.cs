@@ -109,9 +109,12 @@ namespace CarparkWebAPI.Controllers
                          );
                         return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
                     }
+                } else
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
                 }
             }
-            return BadRequest("Could not create Jwt Token");
+            return View(model);
         }
     }
 }
