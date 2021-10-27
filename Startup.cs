@@ -34,6 +34,7 @@ namespace CarparkWebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSession();
+            services.AddHttpClient();
             services.AddControllersWithViews();
             services.AddTransient<ITokenService, TokenService>();
             services.AddDbContext<AuthDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("Default")));
