@@ -1,0 +1,35 @@
+﻿@model CarparkWebAPI.ViewModels.CarparkViewModel
+@{
+    ViewData["Title"] = "Carpark Availability Data";
+}
+
+@{
+    <h1>Carpark Availability Data</h1>
+    var timestamp = Model.Items[0].Timestamp;
+    var data = Model.Items[0].Carpark_data;
+    <h6>Data Fetched At: @timestamp</h6>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Carpark Number</th>
+                <th>Available Lots</th>
+                <th>Total Lots</th>
+                <th>Lot Type</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var carpark in data)
+            {
+                var info = carpark.Carpark_info[0];
+                <tr>
+                    <td>@carpark.Carpark_number</td>
+                    <td>@info.Lots_available</td>
+                    <td>@info.Total_lots</td>
+                    <td>@info.Lot_type</td>
+                    <td>@carpark.Update_datetime</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
