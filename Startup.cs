@@ -1,4 +1,5 @@
 using CarparkWebAPI.DbContext;
+using CarparkWebAPI.Models;
 using CarparkWebAPI.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -40,14 +41,14 @@ namespace CarparkWebAPI
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    options.SaveToken = true;
+                    options.RequireHttpsMetadata = false;
                     options.TokenValidationParameters = new TokenValidationParameters()
                     {
-                        ValidateLifetime = true,
-                        ValidateIssuer = true,
-                        ValidIssuer = Configuration["JWT:ValidIssuer"],
-                        ValidateAudience = true,
-                        ValidAudience = Configuration["JWT:ValidAudience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:SecretKey"]))
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Base64UrlEncoder.DecodeBytes(Configuration["JWT:Secret"])),
                     };
                   
                 });
@@ -73,7 +74,6 @@ namespace CarparkWebAPI
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-            app.UseRouting();
 
             app.UseCors(x => x
             .AllowAnyOrigin()
@@ -83,7 +83,7 @@ namespace CarparkWebAPI
             app.UseSession();
             app.Use(async (context, next) =>
             {
-                var token = context.Session.GetString("Token");
+                var token = context.Session.GetString("JWToken");
                 if (!string.IsNullOrEmpty(token))
                 {
                     context.Request.Headers.Add("Authorization", "Bearer " + token);
@@ -92,7 +92,7 @@ namespace CarparkWebAPI
             });
 
             app.UseAuthentication();
-
+            app.UseRouting();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

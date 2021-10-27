@@ -1,4 +1,5 @@
-﻿using CarparkWebAPI.ViewModels;
+﻿using CarparkWebAPI.DbContext;
+using CarparkWebAPI.ViewModels;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -12,30 +13,30 @@ namespace CarparkWebAPI.Service
 {
     public interface ITokenService
     {
-        string BuildToken(string key, string issuer, string audience, LoginViewModel user);
-        bool ValidateToken(string key, string issuer, string audience, string token);
+        string BuildToken(string key, LoginViewModel user);
+        bool ValidateToken(string key, string token);
     }
     public class TokenService : ITokenService
     {
-        private const double EXPIRY_DURATION_MINUTES = 30;
-
-        public string BuildToken(string key, string issuer, string audience, LoginViewModel user)
+        public string BuildToken(string key, LoginViewModel user)
         {
-            var claimsList = new[]
-            {
-                new Claim("EMAIL", user.Email),
-            };
-
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var decoded = Base64UrlEncoder.DecodeBytes(key);
+            var securityKey = new SymmetricSecurityKey(decoded);
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
-            var tokenDescriptor = new JwtSecurityToken(issuer, audience, claimsList,
-                expires: DateTime.Now.AddMinutes(EXPIRY_DURATION_MINUTES), signingCredentials: credentials);
-            return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] { new Claim("Email", user.Email) }),
+                Expires = DateTime.UtcNow.AddDays(1),
+                SigningCredentials = credentials
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
-        public bool ValidateToken(string key, string issuer, string audience, string token)
+        public bool ValidateToken(string key, string token)
         {
-            var mySecret = Encoding.UTF8.GetBytes(key);
-            var mySecurityKey = new SymmetricSecurityKey(mySecret);
+            var decoded = Base64UrlEncoder.DecodeBytes(key);
+            var securityKey = new SymmetricSecurityKey(decoded);
             var tokenHandler = new JwtSecurityTokenHandler();
             try
             {
@@ -43,11 +44,9 @@ namespace CarparkWebAPI.Service
                 new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidIssuer = issuer,
-                    ValidAudience = audience,
-                    IssuerSigningKey = mySecurityKey,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    IssuerSigningKey = securityKey,
                 }, out SecurityToken validatedToken);
             }
             catch
