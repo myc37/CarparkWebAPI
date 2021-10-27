@@ -1,6 +1,8 @@
 ﻿using CarparkWebAPI.DbContext;
+using CarparkWebAPI.Service;
 using CarparkWebAPI.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -21,13 +23,15 @@ namespace CarparkWebAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
-        
+        private readonly ITokenService _tokenService;
+        private string token = null;
 
-        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
+        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration, ITokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
+            _tokenService = tokenService;
         }
 
         [HttpGet]
@@ -87,34 +91,45 @@ namespace CarparkWebAPI.Controllers
 
                 if (user != null)
                 {
-                    var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+                    var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
                     if (result.Succeeded)
                     {
-
-                        var claimsList = new[]
+                        token = _tokenService.BuildToken(_configuration["JWT:SecretKey"], _configuration["JWT:ValidIssuer"], _configuration["JWT:ValidAudience"], model);
+                        if (token != null)
                         {
-                          new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                          new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                        };
-
-                        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));
-                        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-                        var token = new JwtSecurityToken(
-                            issuer: _configuration["JWT:ValidIssuer"],
-                            audience: _configuration["JWT:ValidAudience"],
-                            claims: claimsList,
-                            expires: DateTime.Now.AddDays(30),
-                            signingCredentials: creds
-                         );
-                        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+                            HttpContext.Session.SetString("Token", token);
+                            return RedirectToAction("index", "Home");
+                        }
+                        else
+                        {
+                            ModelState.AddModelError("", "Failed to generate JWT token");
+                        }
                     }
-                } else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
+                    else
+                    {
+                        ModelState.AddModelError("", "Incorrect Password");
+                    }
                 }
+                else
+                {
+                    ModelState.AddModelError("", "Unregistered Email Address");
+                }
+
+                ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
+
             }
             return View(model);
+        }
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
+        }
+
+        private object JwtSecurityTokenHandler()
+        {
+            throw new NotImplementedException();
         }
     }
 }

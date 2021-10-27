@@ -1,7 +1,9 @@
 using CarparkWebAPI.DbContext;
+using CarparkWebAPI.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,17 +32,17 @@ namespace CarparkWebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSession();
             services.AddControllersWithViews();
+            services.AddTransient<ITokenService, TokenService>();
             services.AddDbContext<AuthDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("Default")));
             services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.IncludeErrorDetails = true;
-                    options.RequireHttpsMetadata = false;
-                    options.SaveToken = true;
                     options.TokenValidationParameters = new TokenValidationParameters()
                     {
+                        ValidateLifetime = true,
                         ValidateIssuer = true,
                         ValidIssuer = Configuration["JWT:ValidIssuer"],
                         ValidateAudience = true,
@@ -51,7 +54,6 @@ namespace CarparkWebAPI
             services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Auth/Login";
-                options.LogoutPath = "/Auth/Logout";
             });
         }
 
@@ -70,8 +72,24 @@ namespace CarparkWebAPI
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
+            app.UseCookiePolicy();
             app.UseRouting();
+
+            app.UseCors(x => x
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+
+            app.UseSession();
+            app.Use(async (context, next) =>
+            {
+                var token = context.Session.GetString("Token");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    context.Request.Headers.Add("Authorization", "Bearer " + token);
+                }
+                await next();
+            });
 
             app.UseAuthentication();
 
