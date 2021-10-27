@@ -1,4 +1,5 @@
 ﻿using CarparkWebAPI.DbContext;
+using CarparkWebAPI.Models;
 using CarparkWebAPI.Service;
 using CarparkWebAPI.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -59,8 +60,8 @@ namespace CarparkWebAPI.Controllers
                 var res = await _userManager.CreateAsync(user, model.Password);
                 if (res.Succeeded)
                 {
-                    await _signInManager.SignInAsync(user, false);
-                    return RedirectToAction("index", "Home");
+                    // await _signInManager.SignInAsync(user, false);
+                    return RedirectToAction("Login");
                 }
                 else
                 {
@@ -94,10 +95,10 @@ namespace CarparkWebAPI.Controllers
                     var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
                     if (result.Succeeded)
                     {
-                        token = _tokenService.BuildToken(_configuration["JWT:SecretKey"], _configuration["JWT:ValidIssuer"], _configuration["JWT:ValidAudience"], model);
+                        token = _tokenService.BuildToken(_configuration["JWT:Secret"], model);
                         if (token != null)
                         {
-                            HttpContext.Session.SetString("Token", token);
+                            HttpContext.Session.SetString("JWToken", token);
                             return RedirectToAction("index", "Home");
                         }
                         else
