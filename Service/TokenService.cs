@@ -36,17 +36,17 @@ namespace CarparkWebAPI.Service
         public bool ValidateToken(string key, string token)
         {
             var decoded = Base64UrlEncoder.DecodeBytes(key);
-            var securityKey = new SymmetricSecurityKey(decoded);
+            var signingKey = new SymmetricSecurityKey(decoded);
             var tokenHandler = new JwtSecurityTokenHandler();
             try
             {
                 tokenHandler.ValidateToken(token,
                 new TokenValidationParameters
                 {
-                    ValidateIssuerSigningKey = true,
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    IssuerSigningKey = securityKey,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = signingKey
                 }, out SecurityToken validatedToken);
             }
             catch

@@ -29,6 +29,21 @@ namespace CarparkWebAPI.Controllers
 
         public IActionResult Index()
         {
+            string token = HttpContext.Session.GetString("JWToken");
+            if (token != null)
+            {
+                if (!_tokenService.ValidateToken(_configuration["JWT:Secret"], token))
+                {
+                    ViewBag.Message = "Unable to validate token";
+                } else
+                {
+                    ViewBag.Message = token;
+                }
+            } 
+            else
+            {
+                ViewBag.Message = "Expired - relogin to refresh jwt token";
+            }
             return View();
         }
 
