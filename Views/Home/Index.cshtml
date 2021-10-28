@@ -1,11 +1,8 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-
-
 @using Microsoft.AspNetCore.Identity
 @using CarparkWebAPI.DbContext
-@inject SignInManager<User> signInManager
 @inject UserManager<User> userManager
 
 @if (User.Identity.IsAuthenticated)
@@ -16,7 +13,7 @@
         <h1 class="display-4">Welcome @name</h1>
         <br />
         <label class="form-label" for="jwtoken">Your JWT Token:</label>
-        <textarea class="form-control" name="jwtoken" disabled rows="2" style="resize: none">@ViewBag.Message</textarea>
+        <textarea class="form-control" name="jwtoken" disabled rows="3" style="resize: none">@ViewBag.Message</textarea>
     </div>
 }
 else

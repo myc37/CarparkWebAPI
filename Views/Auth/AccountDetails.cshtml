@@ -1,0 +1,29 @@
+﻿@model CarparkWebAPI.ViewModels.AccountDetailsViewModel
+@{
+    ViewData["Title"] = "Account Details";
+}
+<h1>@ViewData["Title"]</h1>
+<div class="container mt-5">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-sm-12 col-md-12 col-lg-4">
+            <form>
+                <div class="mb-3">
+                    <label class="form-label" for="Email">Email Address</label>
+                    <input class="form-control" name="Email" value=@Model.Email disabled />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="FirstName">First Name</label>
+                    <input class="form-control" name="FirstName" value=@Model.FirstName disabled />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="LastName">Last Name</label>
+                    <input class="form-control" name="LastName" value=@Model.LastName disabled />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="Contact">Contact</label>
+                    <input class="form-control" name="Contact" value=@Model.Contact disabled />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
