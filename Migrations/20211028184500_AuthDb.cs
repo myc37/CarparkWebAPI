@@ -4,7 +4,7 @@ using MySql.EntityFrameworkCore.Metadata;
 
 namespace CarparkWebAPI.Migrations
 {
-    public partial class InitAuthDb : Migration
+    public partial class AuthDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

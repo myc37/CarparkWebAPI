@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CarparkWebAPI.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20211026222544_InitAuthDb")]
-    partial class InitAuthDb
+    [Migration("20211028184500_AuthDb")]
+    partial class AuthDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
