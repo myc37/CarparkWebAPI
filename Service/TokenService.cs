@@ -13,12 +13,12 @@ namespace CarparkWebAPI.Service
 {
     public interface ITokenService
     {
-        string BuildToken(string key, LoginViewModel user);
+        string BuildToken(string key, User user);
         bool ValidateToken(string key, string token);
     }
     public class TokenService : ITokenService
     {
-        public string BuildToken(string key, LoginViewModel user)
+        public string BuildToken(string key, User user)
         {
             var decoded = Base64UrlEncoder.DecodeBytes(key);
             var securityKey = new SymmetricSecurityKey(decoded);
@@ -26,7 +26,7 @@ namespace CarparkWebAPI.Service
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("Email", user.Email) }),
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, user.Email), new Claim(ClaimTypes.NameIdentifier, user.Id) }),
                 Expires = DateTime.UtcNow.AddDays(1),
                 SigningCredentials = credentials
             };

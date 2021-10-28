@@ -2,6 +2,7 @@
 using CarparkWebAPI.Models;
 using CarparkWebAPI.Service;
 using CarparkWebAPI.ViewModels;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -95,7 +96,7 @@ namespace CarparkWebAPI.Controllers
                     var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
                     if (result.Succeeded)
                     {
-                        token = _tokenService.BuildToken(_configuration["JWT:Secret"], model);
+                        token = _tokenService.BuildToken(_configuration["JWT:Secret"], user);
                         if (token != null)
                         {
                             HttpContext.Session.SetString("JWToken", token);
@@ -121,6 +122,37 @@ namespace CarparkWebAPI.Controllers
             }
             return View(model);
         }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet]
+        public async Task<IActionResult> AccountDetails(AccountDetailsViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                User user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    model = new AccountDetailsViewModel
+                    {
+                        Email = user.Email,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Contact = user.PhoneNumber,
+                    };
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Could not find User");
+                }
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Unauthorized");
+            }
+
+            return View(model);
+        }
+
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
