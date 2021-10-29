@@ -10,7 +10,17 @@ MySQL database running on localhost server is used to store registered user info
 
 Carpark availability data is fetched from https://data.gov.sg/dataset/carpark-availability
 
-<gif>
+
+## Login & Register
+![Login-Register](https://user-images.githubusercontent.com/68676763/139402132-4d9a5cae-11cd-4c6a-a615-6bf8bf135f09.gif)
+
+## Successful JWT Authentication
+![JWT-Auth](https://user-images.githubusercontent.com/68676763/139402147-ef0cebe2-b0c1-4048-a5fb-18a5dfb8860e.gif)
+
+## Expired JWT Token
+![Expired-Token](https://user-images.githubusercontent.com/68676763/139402155-6ddcce76-c995-476b-a079-308cbf9f0dd3.gif)
+
+
 
 # Installation
 
